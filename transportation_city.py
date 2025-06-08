@@ -2,35 +2,33 @@ import osmnx as ox
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Скачати граф дорожньої мережі для заданого міста/села
+# 1. Скачати граф дорожньої мережі для заданого населеного пункту
 G = ox.graph_from_place("Krasna Luka, Ukraine", network_type='drive')
 
-# Отримуємо координати вузлів
-node_positions = {node: (data['x'], data['y']) for node, data in G.nodes(data=True)}
+# 2. Візуалізувати граф (вузли та ребра)
+fig, ax = ox.plot_graph(G, node_size=30, node_color='white', edge_color='yellow', bgcolor='black')
 
-# Візуалізація графа (без підписів для початку)
-fig, ax = ox.plot_graph(G, node_size=30, node_color='white', edge_color='yellow', bgcolor='black', show=False, close=False)
+# 3. Аналіз основних характеристик
+num_nodes = G.number_of_nodes()
+num_edges = G.number_of_edges()
+degrees = dict(G.degree())
+average_degree = sum(degrees.values()) / len(degrees)
 
-# Підписи до вузлів: координати (широта, довгота)
-for node, (x, y) in node_positions.items():
-    # Тут x — довгота, y — широта
-    label = f"{G.nodes[node]['y']:.3f}, {G.nodes[node]['x']:.3f}"
-    ax.text(x, y, label, fontsize=7, color='cyan', alpha=0.9)
+print(f"Кількість вершин (вузлів): {num_nodes}")
+print(f"Кількість ребер: {num_edges}")
+print(f"Середній ступінь вершини: {average_degree:.2f}")
 
-# Підписи до ребер: відстань у метрах
-edge_labels = {}
-for u, v, data in G.edges(data=True):
-    length = data.get('length', None)
-    if length:
-        # Відобразимо тільки короткі ребра для уникнення накладення підписів
-        edge_labels[(u, v)] = f"{int(length)}м"
-
-# Визначаємо позиції вузлів для NetworkX
-pos = {node: (data['x'], data['y']) for node, data in G.nodes(data=True)}
-
-# Додаємо підписи до ребер
-nx.draw_networkx_edge_labels(G, pos=pos, edge_labels=edge_labels, font_size=6, font_color='orange', ax=ax, label_pos=0.5)
-
-plt.title("Транспортна мережа Krasna Luka (координати вузлів і відстані ребер)")
+# 4. Додатково: розподіл ступенів вершин
+plt.figure(figsize=(7, 4))
+plt.hist(list(degrees.values()), bins=range(1, max(degrees.values())+2), edgecolor='black', color='skyblue')
+plt.title('Розподіл ступеня вершин')
+plt.xlabel('Ступінь вершини')
+plt.ylabel('Кількість вершин')
+plt.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()
+
+# 5. (Опціонально) Показати координати першої десятки вузлів
+print("\nПерші 10 вузлів і їх координати (широта, довгота):")
+for node, data in list(G.nodes(data=True))[:10]:
+    print(f"ID: {node}  |  Lat: {data['y']:.5f}  |  Lon: {data['x']:.5f}")
