@@ -3,7 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 # 1. Скачати граф дорожньої мережі для заданого населеного пункту
-G = ox.graph_from_place("Krasna Luka, Ukraine", network_type='drive')
+G = ox.graph_from_place("Skybyn, Ukraine", network_type='drive')
 
 # 2. Візуалізувати граф (вузли та ребра)
 fig, ax = ox.plot_graph(G, node_size=30, node_color='white', edge_color='yellow', bgcolor='black')
@@ -27,8 +27,3 @@ plt.ylabel('Кількість вершин')
 plt.grid(True, linestyle='--', alpha=0.5)
 plt.tight_layout()
 plt.show()
-
-# 5. (Опціонально) Показати координати першої десятки вузлів
-print("\nПерші 10 вузлів і їх координати (широта, довгота):")
-for node, data in list(G.nodes(data=True))[:10]:
-    print(f"ID: {node}  |  Lat: {data['y']:.5f}  |  Lon: {data['x']:.5f}")
