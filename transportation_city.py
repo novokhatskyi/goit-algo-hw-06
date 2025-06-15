@@ -2,6 +2,7 @@ from rich import print
 import osmnx as ox
 import networkx as nx
 import matplotlib.pyplot as plt
+from bfs_dfs import bfs_iterative, dfs_iterative, dijkstra, print_table
 
 # 1. Скачати граф дорожньої мережі для заданого населеного пункту
 G = ox.graph_from_place("Skybyn, Ukraine", network_type='drive')
@@ -46,26 +47,46 @@ for node, data in list(G.nodes(data=True))[:10]:
 
 # 6. DFS
 source = 2390301685
-dfs_tree = nx.dfs_tree(G, source=source)
-print("[bold green]Кількість ребер у дереві DFS:[/bold green]", len(list(dfs_tree.edges())))
+dfs_order = dfs_iterative(G, source)
+print("[bold green]DFS порядок обходу:[/bold green]")
+# dfs_tree = nx.dfs_tree(G, source=source)
+# print("[bold green]Кількість ребер у дереві DFS:[/bold green]", len(list(dfs_tree.edges())))
 
 # 7. BFS
-bfs_tree = nx.bfs_tree(G, source=source)
-print("[bold yellow]Кількість ребер у дереві BFS:[/bold yellow]", len(list(bfs_tree.edges())))
+bfs_order = bfs_iterative(G, source)
+print("\n[bold green]BFS порядок обходу:[/bold green]", bfs_order)
+# bfs_tree = nx.bfs_tree(G, source=source)
+# print("[bold yellow]Кількість ребер у дереві BFS:[/bold yellow]", len(list(bfs_tree.edges())))
 
 # Не заледно від вибору вершини кількість ребер завжди однакова, навіть якщо вибрати інше місто. 
 # Справа в тому що граф звязаний і починаю з одного і того ж source/
 # Доречі я спеціально виводжу кількість ребер а не іх перелік. 
 # Бо взаледності від міста іх жуєе багато. Можу сказати що перелік відрізняється
 
-# Найкоротший шлях від вершини
-shortest_paths = nx.single_source_dijkstra_path(G, source=source, cutoff=None, weight="length")
-shortest_path_lengths = nx.single_source_dijkstra_path_length(G, source=source, weight="length")
+# Алгоритм Дейкстри (вручну)
+def build_simple_graph(nx_graph):
+    simple_graph = {}
+    for u, v, data in nx_graph.edges(data=True):
+        length = data.get("length", 1)
+        if u not in simple_graph:
+            simple_graph[u] = {}
+        if v not in simple_graph:
+            simple_graph[v] = {}
+        # Додаємо ребро з вагою (мінімальну вагу, якщо MultiGraph)
+        simple_graph[u][v] = min(length, simple_graph[u].get(v, float('inf')))
+    return simple_graph
 
-print(shortest_paths)
-print("Вершина\t\tДовжина шляху, м")
-for node, dist in shortest_path_lengths.items():
-    print(f"{node}\t{dist:.1f}")
+graph_dict = build_simple_graph(G)
+distance = dijkstra(graph_dict, source)
+print_table(distance, visited=distance.keys())  # або visited=[], якщо хочеш тільки відстані
+
+# shortest_paths = nx.single_source_dijkstra_path(G, source=source, cutoff=None, weight="length")
+# shortest_path_lengths = nx.single_source_dijkstra_path_length(G, source=source, weight="length")
+
+# print(shortest_paths)
+# print("Вершина\t\tДовжина шляху, м")
+# for node, dist in shortest_path_lengths.items():
+#     print(f"{node}\t{dist:.1f}")
 
 
 # 8. Додатково: розподіл ступенів вершин
